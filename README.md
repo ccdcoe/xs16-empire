@@ -2,7 +2,7 @@
 
 generate some "real bad" traffic
 
-* xs site:ccdcoe.org "Crossed Swords"
-* empire https://github.com/PowerShellEmpire/Empire
+* XS https://www.google.ee/?q=site:ccdcoe.org+%22Crossed+Swords%22
+* Empire https://github.com/PowerShellEmpire/Empire
  
 
