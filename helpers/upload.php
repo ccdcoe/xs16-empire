@@ -34,7 +34,7 @@ if(!is_dir($target_dir)){
  }
 }
 
-if ([REQUEST_METHOD] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $filename = "dummy";
   if (!empty($_FILES['file']) ){
     $filename = $_FILES['file']['name'];

