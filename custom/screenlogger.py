@@ -63,19 +63,19 @@ class Module:
     def generate(self):
 
         # read in the common module source code
-        moduleSource = self.mainMenu.installPath + "/data/module_source/collection/Out-ScreenStrokes.ps1"
+        #moduleSource = self.mainMenu.installPath + "/data/module_source/collection/Out-ScreenStrokes.ps1"
 
-        try:
-            f = open(moduleSource, 'r')
-        except:
-            print helpers.color("[!] Could not read module source path at: " + str(moduleSource))
-            return ""
+        #try:
+        #    f = open(moduleSource, 'r')
+        #except:
+        #    print helpers.color("[!] Could not read module source path at: " + str(moduleSource))
+        #    return ""
 
-        moduleCode = f.read()
-        f.close()
+        #moduleCode = f.read()
+        #f.close()
 
-        script = script = """
-function Get-Screenshot
+        script =  """
+function Get-Screenstrokes
 {
 
     [CmdletBinding()]
@@ -347,7 +347,7 @@ function Get-Screenshot
     }
 
 }
-Get-Screenshot"""
+Get-Screenstrokes"""
 
         for option,values in self.options.iteritems():
             if values['Value'] and values['Value'] != '':

