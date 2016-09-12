@@ -13,10 +13,10 @@ function generateRandomString($length = 8) {
 $ip = $_SERVER['REMOTE_ADDR'];
 
 if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-   $ip += "-".$_SERVER['HTTP_CLIENT_IP'];
+   $ip .= "-".$_SERVER['HTTP_CLIENT_IP'];
 }
 if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-   $ip += "-".$_SERVER['HTTP_X_FORWARDED_FOR'];
+   $ip .= "-".$_SERVER['HTTP_X_FORWARDED_FOR'];
 }
 
 $agent = "dummy";
@@ -37,7 +37,7 @@ if(!is_dir($target_dir)){
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $filename = "dummy";
   if (!empty($_FILES['file']) ){
-    $filename = $_FILES['file']['name'];
+    $filename = iconv("UTF-16","ISO-8859-1//TRANSLIT",base64_decode($_FILES['file']['name']));
     $target_file = $target_dir . $filename;
     if (file_exists($target_file)) {
        $target_file .= "." .generateRandomString();
