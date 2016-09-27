@@ -32,7 +32,7 @@ back
 uselistener http_hop
 set Name hop2
 set RedirectListener localhost
-set OutFolder /usr/share/nginx/html
+set OutFolder /usr/share/nginx/html/hop2
 set Host http://192.168.33.22:80
 execute
 back
