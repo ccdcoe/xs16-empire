@@ -86,18 +86,18 @@ EOF
 apt-get -y install nginx php5-fpm > /dev/null
 cat > /etc/nginx/sites-enabled/default <<EOF
 server {
-	listen 80 default_server;
-	root /usr/share/nginx/html;
-	index index.html index.htm;
-	server_name localhost;
-	location / {
-		try_files $uri $uri/ =404;
-	}
-	location ~ \.php$ {
-		fastcgi_pass unix:/var/run/php5-fpm.sock;
-		fastcgi_index index.php;
-		include fastcgi_params;
-	}
+  listen 80 default_server;
+  root /usr/share/nginx/html;
+  index index.html index.htm;
+  server_name localhost;
+  location / {
+    try_files $uri $uri/ =404;
+  }
+  location ~ \.php$ {
+    fastcgi_pass unix:/var/run/php5-fpm.sock;
+    fastcgi_index index.php;
+    include fastcgi_params;
+  }
 }
 EOF
 service nginx start
@@ -115,29 +115,29 @@ $hopper = <<SCRIPT
 echo "hopper .."
 apt-get -y install nginx > /dev/null
 
-cat > /etc/nginx/sites-enabled/default <<EOF
-limit_conn_zone $binary_remote_addr zone=addr:10m;
+cat > /etc/nginx/sites-enabled/default <<'EOF'
+limit_conn_zone \$binary_remote_addr zone=addr:10m;
 server {
-	listen 80 default_server;
-	root /usr/share/nginx/html;
-	index index.html index.htm;
-	server_name localhost;
-	location = /admin/get.php {
-		proxy_set_header X-Forwarded-For  $remote_addr;
-		proxy_pass http://192.168.33.33;
-	}
-	location = /login/process.php {
-		proxy_set_header X-Forwarded-For  $remote_addr;
-		proxy_pass http://192.168.33.33;
-	}
-  location = /news.php {
-    proxy_set_header X-Forwarded-For  $remote_addr;
+  listen 80 default_server;
+  root /usr/share/nginx/html;
+  index index.html index.htm;
+  server_name localhost;
+  location = /admin/get.php {
+    proxy_set_header X-Forwarded-For  \$remote_addr;
     proxy_pass http://192.168.33.33;
   }
-	location / {
-		limit_rate 256;
-		limit_conn addr 1;
-	}
+  location = /login/process.php {
+    proxy_set_header X-Forwarded-For  \\$remote_addr;
+    proxy_pass http://192.168.33.33;
+  }
+  location = /news.php {
+    proxy_set_header X-Forwarded-For  \\\$remote_addr;
+    proxy_pass http://192.168.33.33;
+  }
+  location / {
+    limit_rate 256;
+    limit_conn addr 1;
+  }
 }
 EOF
 service nginx start
@@ -145,6 +145,7 @@ service nginx reload
 service nginx status
 date >> /etc/vagrant_provisioned_at
 cat /etc/nginx/sites-enabled/default
+cat /tmp/vagrant-shell
 SCRIPT
 
 

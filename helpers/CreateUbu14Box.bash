@@ -30,6 +30,7 @@ apt-get upgrade >> /etc/vagrant_provisioned_at
 apt-get -y install openjdk-7-jdk >> /etc/vagrant_provisioned_at
 apt-get -y install git >> /etc/vagrant_provisioned_at
 apt-get -y install libpcre3 libpcre3-dbg libpcre3-dev build-essential autoconf automake libtool libpcap-dev libnet1-dev libyaml-0-2 libyaml-dev pkg-config zlib1g zlib1g-dev libcap-ng-dev libcap-ng0 make libmagic-dev >> /etc/vagrant_provisioned_at
+apt-get -y install python-dev python-m2crypto swig python-pip libxml2-dev default-jdk libssl-dev >> /etc/vagrant_provisioned_at
 apt-get clean
 date >> /etc/vagrant_provisioned_at
 SCRIPT
