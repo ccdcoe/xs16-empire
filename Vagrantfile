@@ -2,7 +2,7 @@
 $empire = <<SCRIPT
 echo "Empire ..."
 cd /home/vagrant/
-wget -q https://github.com/adaptivethreat/Empire/archive/2.0_beta.tar.gz
+wget -q -4 https://github.com/EmpireProject/Empire/archive/2.0_beta.tar.gz 
 tar -xzf 2.0_beta.tar.gz
 rm 2.0_beta.tar.gz
 #cp /vagrant/custom/screenlogger.py /home/vagrant/Empire-dev/lib/modules/collection/
